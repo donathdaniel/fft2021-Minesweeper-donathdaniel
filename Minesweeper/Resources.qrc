@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/Resources">
+        <file>img/bomb.png</file>
+        <file>img/flag.ico</file>
+        <file>img/mine2.ico</file>
+        <file>img/smiley.ico</file>
+        <file>img/smiley1.ico</file>
+        <file>img/smiley3.ico</file>
+    </qresource>
+</RCC>
