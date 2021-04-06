@@ -10,7 +10,7 @@
 #include <QRandomGenerator>
 #include <QPixmap>
 #include "clock.h"
-#include "bombcounter.h"
+#include "flagcounter.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Minesweeper; }
@@ -21,33 +21,46 @@ class Minesweeper : public QWidget
     Q_OBJECT
 
 public:
-    Minesweeper(QWidget *parent = nullptr);
+    Minesweeper(QWidget *parent = nullptr, int width=228, int height=250, int row=9, int col=9, int bombNumber=10);
     ~Minesweeper();
 
 private slots:
     void resetGame();
-    bool isValid(int row, int col);
     void gameContinue();
     void makeFlag();
-    void discovery(int, int);
-    void endGame();
-    int remainedPositions();
+    void endGame(int, int);
     void winner();
 
 signals:
-    void gameOver();
+    void gameOver(int, int);
     void weHaveTheWinner();
     void minusBomb(int);
     void plusBomb(int);
 
 private:
     Ui::Minesweeper *ui;
-    int ROW=16, COL=16, totalBombs=40;
+    int ROW, COL, totalBombs;
     QVector<QVector<int>> matrix;
     QVector<QVector<bool>> visited;
     int flagedPositions;
     int rowNum[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
     int colNum[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    bool firstMove=false;
+
+    QHBoxLayout* hLayout;
+    QVBoxLayout* vLayout;
+    QGridLayout* gLayout;
+    QPushButton* smileyButton;
+    FlagCounter* flagCounter;
+    Clock* clock;
+
+    bool isValid(int row, int col);
+    int remainedPositions();
+    void discovery(int, int);
+
+    //design
+    QString buttonStyle="font: bold; background-color: #3e432e;";
+    QString buttonStyleDisabled="font: bold; background-color: #616f39;";
     QVector<QString> colorsOfNumbers={"color:blue;",
                                       "color:green;",
                                       "color:red;",
@@ -56,13 +69,5 @@ private:
                                       "color:gray;",
                                       "color:maroon;",
                                       "color:turquise;"};
-
-
-    QHBoxLayout* hLayout;
-    QVBoxLayout* vLayout;
-    QGridLayout* gLayout;
-    QPushButton* smileyButton;
-    BombCounter* bombCounter;
-    Clock* clock;
 };
 #endif // MINESWEEPER_H

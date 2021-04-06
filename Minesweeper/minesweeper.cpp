@@ -2,34 +2,34 @@
 #include "ui_minesweeper.h"
 #include "specialbutton.h"
 
-Minesweeper::Minesweeper(QWidget *parent)
+Minesweeper::Minesweeper(QWidget *parent , int width, int height, int row, int col, int bombNumber)
     : QWidget(parent)
-    , ui(new Ui::Minesweeper)
+    , ui(new Ui::Minesweeper), ROW(row), COL(col), totalBombs(bombNumber)
 {
     ui->setupUi(this);
 
-    //    design
-    //    szintek
+    //size setting
+    setFixedSize(width,height);
+    setStyleSheet("background-color: #616f39;");
 
-
-
-    setFixedSize(400,400);
-    flagedPositions=totalBombs;
     hLayout=new QHBoxLayout;
 
-    bombCounter= new BombCounter(flagedPositions);
-    connect(this,&Minesweeper::plusBomb,bombCounter,&BombCounter::showBombs);
-    connect(this,&Minesweeper::minusBomb,bombCounter,&BombCounter::showBombs);
+    flagCounter= new FlagCounter();
+    flagedPositions=totalBombs;
+    flagCounter->showBombs(flagedPositions);
+    connect(this,&Minesweeper::plusBomb,flagCounter,&FlagCounter::showBombs);
+    connect(this,&Minesweeper::minusBomb,flagCounter,&FlagCounter::showBombs);
 
     smileyButton= new QPushButton();
     connect(smileyButton,&SpecialButton::clicked,this,&Minesweeper::resetGame);
 
     clock=new Clock();
 
-    hLayout->addWidget(bombCounter);
+    hLayout->addWidget(flagCounter);
     hLayout->addWidget(smileyButton);
     hLayout->addWidget(clock);
 
+    //grid layout
     gLayout=new QGridLayout;
     gLayout->setSpacing(0);
     matrix.resize(ROW,QVector<int>(COL));
@@ -42,13 +42,18 @@ Minesweeper::Minesweeper(QWidget *parent)
             specialButton->setFixedSize(25,25);
             gLayout->addWidget(specialButton,i,j);
 
+            //special button left click(flag), right click(discover)
             connect(specialButton,&SpecialButton::leftMouseButton,this,&Minesweeper::gameContinue);
             connect(specialButton,&SpecialButton::rightMouseButton,this,&Minesweeper::makeFlag);
         }
     }
-    resetGame();
+
+    //the logic of the game(winning, losing)
     connect(this,&Minesweeper::weHaveTheWinner,this,&Minesweeper::winner);
     connect(this,&Minesweeper::gameOver,this,&Minesweeper::endGame);
+
+    //game setup
+    resetGame();
 
     vLayout=new QVBoxLayout;
     vLayout->addLayout(hLayout);
@@ -56,6 +61,12 @@ Minesweeper::Minesweeper(QWidget *parent)
 
     setLayout(vLayout);
 }
+
+Minesweeper::~Minesweeper()
+{
+    delete ui;
+}
+
 
 void Minesweeper::resetGame()
 {
@@ -66,17 +77,24 @@ void Minesweeper::resetGame()
         }
     }
 
-    int n,m ;
+    //generating the bombs
+    int n,m;
+    srand(time(NULL));
     for(int i=0;i<totalBombs;++i){
-        n=QRandomGenerator::global()->bounded(0,ROW);
-        m=QRandomGenerator::global()->bounded(0,COL);
+        n=rand()%(ROW);
+        m=rand()%(COL);
         while(matrix[n][m]==9){
-            n=QRandomGenerator::global()->bounded(0,ROW);
-            m=QRandomGenerator::global()->bounded(0,COL);
+            n=rand()%(ROW);
+            m=rand()%(COL);
         }
         matrix[n][m]=9;
     }
 
+    //set the number of the flags
+    flagedPositions=totalBombs;
+    flagCounter->showBombs(flagedPositions);
+
+    //fill the matrix with the numbers
     int bombCounter;
     for(int i=0;i<ROW;++i){
         for(int j=0;j<COL;++j){
@@ -89,6 +107,8 @@ void Minesweeper::resetGame()
             }
         }
     }
+
+    //printing the matrix
     QDebug dbg(QtDebugMsg);
     for(int i=0;i<ROW;++i){
         for(int j=0;j<COL;++j){
@@ -97,6 +117,7 @@ void Minesweeper::resetGame()
         dbg<<"\n";
     }
 
+    //buttons set enabled, remove text, and icons+ add stylesheet
     for(int idx = 0; idx < gLayout->count(); idx++)
       {
         QWidget *item = gLayout->itemAt(idx)->widget();
@@ -105,14 +126,20 @@ void Minesweeper::resetGame()
             SpecialButton* button=dynamic_cast<SpecialButton*>(item);
             button->setIcon(QIcon());
             button->setText("");
+            button->setStyleSheet(buttonStyle);
         }
       }
 
+    //set smiley button properties
+    smileyButton->setStyleSheet(buttonStyleDisabled);
     QPixmap pixmap(":/Resources/img/smiley1.ico");
     QIcon ButtonIcon(pixmap);
     smileyButton->setIcon(ButtonIcon);
+    smileyButton->setFixedSize(30,30);
 
-    clock->restart();
+    firstMove=false;
+    clock->stoptTimer();
+    clock->display("00");
 }
 
 
@@ -124,19 +151,26 @@ bool Minesweeper::isValid(int row, int col)
 
 void Minesweeper::gameContinue()
 {
+    if(!firstMove){
+        clock->restart();
+        firstMove=true;
+    }
+    //left click event
     SpecialButton *button = (SpecialButton *)sender();
     if (button != NULL){
         if(!button->icon().isNull()){
             return;
         }
+        //find the position of the sender widget
         int index=gLayout->indexOf(button);
         int a,b,c;
         gLayout->getItemPosition(index,&a,&b,&c,&c);
 
+        //backtracking
         discovery(a,b);
 
+        //if free position==bombs => winner
         int remained=remainedPositions();
-        //qDebug()<<remained;
         if(remained==totalBombs){
             emit weHaveTheWinner();
         }
@@ -146,19 +180,20 @@ void Minesweeper::gameContinue()
 
 void Minesweeper::makeFlag()
 {
+    //right click event
     SpecialButton *specialButton = (SpecialButton *)sender();
     if(specialButton->text()==""){
         if(specialButton->icon().isNull()){
+            //add flag
             QPixmap pixmap(":/Resources/img/flag.ico");
             QIcon ButtonIcon(pixmap);
             specialButton->setIcon(ButtonIcon);
-            flagedPositions--;
-            emit minusBomb(flagedPositions);
+            emit minusBomb(--flagedPositions);
         }
         else{
+            //remove flag
             specialButton->setIcon(QIcon());
-            flagedPositions++;
-            emit plusBomb(flagedPositions);
+            emit plusBomb(++flagedPositions);
         }
     }
 }
@@ -166,48 +201,72 @@ void Minesweeper::makeFlag()
 void Minesweeper::discovery(int i, int j)
 {
     if(matrix[i][j]==9){
-        emit gameOver();
+        //bomb was found
+        emit gameOver(i,j);
         return;
     }
     else{
+        //find the sender widget by the indexes
         QLayoutItem* item =gLayout->itemAtPosition(i,j);
         QWidget* widget=item->widget();
         SpecialButton* button=dynamic_cast<SpecialButton*>(widget);
 
+        if(!button->icon().isNull()){
+            button->setIcon(QIcon());
+            emit plusBomb(++flagedPositions);
+        }
+
         if(matrix[i][j]!=0){
+            //number was found, backtrack stops here
             button->setText(QString::number(matrix[i][j]));
-            button->setStyleSheet(colorsOfNumbers[matrix[i][j]-1]);
+            button->setStyleSheet(colorsOfNumbers[matrix[i][j]-1]+buttonStyleDisabled);
             return;
         }
         visited[i][j]=true;
         button->setDisabled(true);
+        button->setStyleSheet(buttonStyleDisabled);
 
+        //check all the 8 posibilities
         for(int k=0;k<8;++k){
             if(isValid(i+rowNum[k],j+colNum[k]) && !visited[i+rowNum[k]][j+colNum[k]]){
-                    discovery(i+rowNum[k],j+colNum[k]);
+                discovery(i+rowNum[k],j+colNum[k]);
             }
         }
     }
 }
 
-void Minesweeper::endGame()
+void Minesweeper::endGame(int i, int j)
 {
+    //losing
+
+    //find the sender widget by the indexes, and change the background red
+    QLayoutItem* item =gLayout->itemAtPosition(i,j);
+    QWidget* widget=item->widget();
+    SpecialButton* button=dynamic_cast<SpecialButton*>(widget);
+    button->setStyleSheet("background-color:red");
+
+    //change the smiley button to sad
     QPixmap pixmap(":/Resources/img/smiley3.ico");
     QIcon ButtonIcon(pixmap);
     smileyButton->setIcon(ButtonIcon);
-    clock->getTimer()->stop();
 
+    //stopping the clock
+    clock->stoptTimer();
+
+    //disable all the buttons
     for(int idx = 0; idx < gLayout->count(); idx++)
       {
         QWidget *item = gLayout->itemAt(idx)->widget();
         if(item !=NULL){
             item->setDisabled(true);
-
             SpecialButton* button=dynamic_cast<SpecialButton*>(item);
+
+            //find the position of the sender widget
             int index=gLayout->indexOf(button);
             int a,b,c;
             gLayout->getItemPosition(index,&a,&b,&c,&c);
 
+            //find all the bombs and show them
             if(matrix[a][b]==9){
                 QPixmap pixmap(":/Resources/img/bomb.png");
                 QIcon ButtonIcon(pixmap);
@@ -219,6 +278,7 @@ void Minesweeper::endGame()
 
 int Minesweeper::remainedPositions()
 {
+    //counting all the free position
     int remained=0;
     for(int idx = 0; idx < gLayout->count(); idx++)
       {
@@ -235,23 +295,36 @@ int Minesweeper::remainedPositions()
 
 void Minesweeper::winner()
 {
+    //winning
+
+    //set the smiley button to swag
     QPixmap pixmap(":/Resources/img/smiley.ico");
     QIcon ButtonIcon(pixmap);
     smileyButton->setIcon(ButtonIcon);
-    clock->getTimer()->stop();
-    bombCounter->display(0);
 
+    //stopping the clock
+    clock->stoptTimer();
+
+    //change the flag counter to 0
+    flagCounter->display(0);
+
+    //disable all the buttons
     for(int idx = 0; idx < gLayout->count(); idx++)
       {
         QWidget *item = gLayout->itemAt(idx)->widget();
         if(item !=NULL){
+            if(item->isEnabled()){
+                SpecialButton* button=dynamic_cast<SpecialButton*>(item);
+
+                //set the flags to all the free positions
+                if(button->text()==""){
+                    QPixmap pixmap(":/Resources/img/flag.ico");
+                    QIcon ButtonIcon(pixmap);
+                    button->setIcon(ButtonIcon);
+                }
+            }
             item->setDisabled(true);
         }
     }
-}
-
-Minesweeper::~Minesweeper()
-{
-    delete ui;
 }
 

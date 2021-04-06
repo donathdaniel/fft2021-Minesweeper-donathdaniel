@@ -9,15 +9,17 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    bombcounter.cpp \
     clock.cpp \
+    flagcounter.cpp \
     main.cpp \
+    menu.cpp \
     minesweeper.cpp \
     specialbutton.cpp
 
 HEADERS += \
-    bombcounter.h \
     clock.h \
+    flagcounter.h \
+    menu.h \
     minesweeper.h \
     specialbutton.h
 

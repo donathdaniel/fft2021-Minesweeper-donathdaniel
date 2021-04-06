@@ -8,10 +8,10 @@
 class Clock : public QLCDNumber
 {
 public:
-   Clock();
-   QTimer *getTimer() const;
+   Clock(QWidget* parent=nullptr);
+   void startTimer();
+   void stoptTimer();
    QTime *getTime() const;
-   void setTime(QTime *value);
 
 public slots:
    void showTime();

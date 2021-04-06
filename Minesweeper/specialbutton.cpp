@@ -12,3 +12,4 @@ void SpecialButton::mousePressEvent(QMouseEvent *e)
         emit leftMouseButton();
     }
 }
+

@@ -1,32 +1,38 @@
 #include "clock.h"
 
-Clock::Clock()
+Clock::Clock(QWidget* parent) : QLCDNumber(parent)
 {
-    setSegmentStyle(Filled);
+    setSegmentStyle(QLCDNumber::Flat);
+    this->display("000");
+    setStyleSheet("background-color: #3e432e; color: #a7d129;");
 
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &Clock::showTime);
-    timer->start(20);
     time=new QTime(0,0,0,0);
 
-    showTime();
 }
+
+void Clock::startTimer()
+{
+    timer->start(1000);
+}
+
+void Clock::stoptTimer()
+{
+    timer->stop();
+}
+
 void Clock::showTime()
 {
-   QString text = time->toString("mm:ss");
-   display(text);
-   *time = time->addMSecs(25);
+    QString text = time->toString("ss");
+    display(text);
+    *time = time->addMSecs(1000);
 }
 
 void Clock::restart()
 {
     time=new QTime(0,0,0,0);
-    timer->start();
-}
-
-void Clock::setTime(QTime *value)
-{
-    time = value;
+    startTimer();
 }
 
 QTime *Clock::getTime() const
@@ -34,7 +40,3 @@ QTime *Clock::getTime() const
     return time;
 }
 
-QTimer *Clock::getTimer() const
-{
-    return timer;
-}
