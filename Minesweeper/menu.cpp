@@ -4,8 +4,11 @@
 
 Menu::Menu(QWidget *parent) : QMainWindow(parent)
 {
-    mainLayout = new QVBoxLayout();
+    //design
+    setStyleSheet("background-color: #616f39;");
 
+    //making the menubar
+    mainLayout = new QVBoxLayout();
     menuBar = new QMenuBar();
     fileMenu = new QMenu("Difficulty");
     menuBar->addMenu(fileMenu);
@@ -16,6 +19,7 @@ Menu::Menu(QWidget *parent) : QMainWindow(parent)
     widget->setLayout(mainLayout);
     mainLayout->addWidget(w);
 
+    //adding the options, and making connections
     QAction *beginner = new QAction("Beginner", this);
     connect(beginner, &QAction::triggered,this,&Menu::beginnerGame);
     fileMenu->addAction(beginner);
@@ -35,8 +39,9 @@ Menu::Menu(QWidget *parent) : QMainWindow(parent)
 
 void Menu::beginnerGame()
 {
-    mainLayout->removeWidget(w);
-    delete w;
+    deleteWidget();
+
+    //initializing beginner game
     w=new Minesweeper;
     mainLayout->addWidget(w);//228,250 - 18, 40
     setFixedSize(246,290);
@@ -44,8 +49,9 @@ void Menu::beginnerGame()
 
 void Menu::intermediateGame()
 {
-    mainLayout->removeWidget(w);
-    delete w;
+    deleteWidget();
+
+    //initializing intermediate game
     w=new Minesweeper(0,390,400,16,16,40);
     mainLayout->addWidget(w);
     setFixedSize(408,440);
@@ -53,9 +59,17 @@ void Menu::intermediateGame()
 
 void Menu::expertGame()
 {
-    mainLayout->removeWidget(w);
-    delete w;
+    deleteWidget();
+
+    //initializing expert game
     w=new Minesweeper(0,700,400,16,30,99);
     mainLayout->addWidget(w);
     setFixedSize(718,440);
+}
+
+void Menu::deleteWidget()
+{
+    //removing tha current widget from the layout
+    mainLayout->removeWidget(w);
+    delete w;
 }

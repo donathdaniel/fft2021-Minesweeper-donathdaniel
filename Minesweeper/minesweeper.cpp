@@ -8,21 +8,24 @@ Minesweeper::Minesweeper(QWidget *parent , int width, int height, int row, int c
 {
     ui->setupUi(this);
 
-    //size setting
+    //setting size, and design
     setFixedSize(width,height);
     setStyleSheet("background-color: #616f39;");
 
     hLayout=new QHBoxLayout;
 
+    //making flagcounter and connections
     flagCounter= new FlagCounter();
     flagedPositions=totalBombs;
     flagCounter->showBombs(flagedPositions);
     connect(this,&Minesweeper::plusBomb,flagCounter,&FlagCounter::showBombs);
     connect(this,&Minesweeper::minusBomb,flagCounter,&FlagCounter::showBombs);
 
+    //making smiley button(reset button)
     smileyButton= new QPushButton();
     connect(smileyButton,&SpecialButton::clicked,this,&Minesweeper::resetGame);
 
+    //making the timer
     clock=new Clock();
 
     hLayout->addWidget(flagCounter);
@@ -35,6 +38,7 @@ Minesweeper::Minesweeper(QWidget *parent , int width, int height, int row, int c
     matrix.resize(ROW,QVector<int>(COL));
     visited.resize(ROW,QVector<bool>(COL));
 
+    //adding the special buttons to the grid layout
     for(int i=0;i<ROW;++i){
         for(int j=0;j<COL;++j){
             SpecialButton* specialButton=new SpecialButton();
@@ -52,7 +56,7 @@ Minesweeper::Minesweeper(QWidget *parent , int width, int height, int row, int c
     connect(this,&Minesweeper::weHaveTheWinner,this,&Minesweeper::winner);
     connect(this,&Minesweeper::gameOver,this,&Minesweeper::endGame);
 
-    //game setup
+    //game default setup
     resetGame();
 
     vLayout=new QVBoxLayout;
@@ -151,6 +155,7 @@ bool Minesweeper::isValid(int row, int col)
 
 void Minesweeper::gameContinue()
 {
+    //starting the timer when we make the first move
     if(!firstMove){
         clock->restart();
         firstMove=true;

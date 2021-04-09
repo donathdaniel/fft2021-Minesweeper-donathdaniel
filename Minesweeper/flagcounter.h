@@ -5,6 +5,7 @@
 
 class FlagCounter : public QLCDNumber
 {
+    //making a ponel which shows that how many flag you can use
 public:
     FlagCounter(QWidget* parent=nullptr);
     void setValue(int value);

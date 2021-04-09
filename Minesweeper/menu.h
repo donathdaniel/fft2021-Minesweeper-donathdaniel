@@ -8,6 +8,7 @@
 class Menu : public QMainWindow
 {
     Q_OBJECT
+    //making the interface of the game(actuall game and the difficulty levels)
 public:
     explicit Menu(QWidget *parent = nullptr);
 
@@ -24,6 +25,8 @@ private:
     QMenuBar* menuBar;
     QMenu *fileMenu;
     QVBoxLayout *mainLayout;
+
+    void deleteWidget();
 };
 
 #endif // MENU_H

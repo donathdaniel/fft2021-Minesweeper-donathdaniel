@@ -39,6 +39,8 @@ signals:
 
 private:
     Ui::Minesweeper *ui;
+
+    //variables for the logic of the game
     int ROW, COL, totalBombs;
     QVector<QVector<int>> matrix;
     QVector<QVector<bool>> visited;
@@ -47,6 +49,7 @@ private:
     int colNum[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
     bool firstMove=false;
 
+    //necessarly layouts and widgets
     QHBoxLayout* hLayout;
     QVBoxLayout* vLayout;
     QGridLayout* gLayout;
