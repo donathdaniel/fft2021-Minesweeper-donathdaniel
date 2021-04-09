@@ -142,8 +142,7 @@ void Minesweeper::resetGame()
     smileyButton->setFixedSize(30,30);
 
     firstMove=false;
-    clock->stoptTimer();
-    clock->display("00");
+    clock->restart();
 }
 
 
@@ -157,7 +156,7 @@ void Minesweeper::gameContinue()
 {
     //starting the timer when we make the first move
     if(!firstMove){
-        clock->restart();
+        clock->startTimer();
         firstMove=true;
     }
     //left click event
@@ -256,7 +255,7 @@ void Minesweeper::endGame(int i, int j)
     smileyButton->setIcon(ButtonIcon);
 
     //stopping the clock
-    clock->stoptTimer();
+    clock->stopTimer();
 
     //disable all the buttons
     for(int idx = 0; idx < gLayout->count(); idx++)
@@ -308,7 +307,7 @@ void Minesweeper::winner()
     smileyButton->setIcon(ButtonIcon);
 
     //stopping the clock
-    clock->stoptTimer();
+    clock->stopTimer();
 
     //change the flag counter to 0
     flagCounter->display(0);

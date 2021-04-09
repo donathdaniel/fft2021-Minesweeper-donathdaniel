@@ -3,15 +3,13 @@
 
 #include <QLCDNumber>
 #include <QTimer>
-#include <QTime>
 
 class Clock : public QLCDNumber
 {
 public:
    Clock(QWidget* parent=nullptr);
    void startTimer();
-   void stoptTimer();
-   QTime *getTime() const;
+   void stopTimer();
 
 public slots:
    void showTime();
@@ -19,7 +17,7 @@ public slots:
 
 private:
    QTimer *timer;
-   QTime* time;
+   int time;
 };
 
 #endif // CLOCK_H

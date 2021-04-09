@@ -62,8 +62,8 @@ private:
     void discovery(int, int);
 
     //design
-    QString buttonStyle="font: bold; background-color: #3e432e;";
-    QString buttonStyleDisabled="font: bold; background-color: #616f39;";
+    QString buttonStyle="font: bold; background-color: #3e432e;"; //border: 2px outset #999;
+    QString buttonStyleDisabled="font: bold; background-color: #616f39;"; //border: 1px inset grey;
     QVector<QString> colorsOfNumbers={"color:blue;",
                                       "color:green;",
                                       "color:red;",

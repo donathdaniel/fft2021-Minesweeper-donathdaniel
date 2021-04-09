@@ -10,11 +10,13 @@ Menu::Menu(QWidget *parent) : QMainWindow(parent)
     //making the menubar
     mainLayout = new QVBoxLayout();
     menuBar = new QMenuBar();
+
     fileMenu = new QMenu("Difficulty");
     menuBar->addMenu(fileMenu);
 
     widget=new QWidget();
     w=new Minesweeper();
+    setFixedSize(246,290);
 
     widget->setLayout(mainLayout);
     mainLayout->addWidget(w);
